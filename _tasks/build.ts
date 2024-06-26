@@ -6,15 +6,15 @@ async function buildForGAS() {
     outdir: "dist",
   });
 
-  const artifact = result.outputs[0];
-  const code = await Bun.file(artifact.path).text();
+  for (const artifact of result.outputs) {
+    const code = await Bun.file(artifact.path).text();
+    const output = generate(code);
 
-  const output = generate(code);
-
-  await Bun.write(
-    artifact.path,
-    `const global=this;\n${output.entryPointFunctions}\n(() => {\n${code}\n})();`
-  );
+    await Bun.write(
+      artifact.path,
+      `var global=this;\n${output.entryPointFunctions}\n(() => {\n${code}\n})();`
+    );
+  }
 }
 
 buildForGAS();
