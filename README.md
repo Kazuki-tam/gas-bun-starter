@@ -11,12 +11,14 @@ gas-bun-starter is a starter kit that uses Bun for Google Apps Script.
 
 ## Features
 - Just deploy this project code without development
-- Develop, test, run, and bundle JavaScript & TypeScript with Bun
+- Develop, test, and bundle TypeScript with Bun
+- Format and lint with Biome
 
 ## Main dependencies
 
 - [Google Apps Script](https://workspace.google.co.jp/intl/ja/products/apps-script/)
 - [Clasp](https://github.com/google/clasp)
+- [Biome](https://biomejs.dev/)
 
 ## Prerequisites
 
@@ -36,10 +38,10 @@ bun install
 bun clasp:login
 ```
 
-### Connect to your exiting project
+### Connect to your existing project
 
 Create a `.clasp.json` at the root, and then Add these settings.
-Open App script from your spreadsheet and check out a script Id at the setting page.
+Open the App script from your spreadsheet and check out a script ID on the settings page.
 
 ```json
 {
@@ -62,7 +64,7 @@ Build your project.
 bun postBuild
 ```
 
-Build your project files and force writes all local files to script.google.com.
+Build your local project files and deploy them to the remote project.
 
 ```shell
 bun release
@@ -72,6 +74,12 @@ Open the current directory's clasp project on script.google.com.
 
 ```shell
 bun clasp:open
+```
+
+Format and lint your project files.
+
+```shell
+bun check
 ```
 
 ## License
