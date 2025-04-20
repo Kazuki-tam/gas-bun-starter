@@ -74,14 +74,8 @@ async function processCursorRules() {
   for (const file of ruleFiles) {
     const fileName = path.basename(file, ".md");
 
-    // For core-rule.md rename to cursor-core-rule
-    // For gas-rule.md rename to cursor-gas-rule
-    let newFileName = fileName;
-    if (fileName === "core-rule") {
-      newFileName = `${editor}-core-rule`;
-    } else if (fileName === "gas-rule") {
-      newFileName = `${editor}-gas-rule`;
-    }
+    // Rename all rules to have editor prefix (e.g., cursor-rule-name)
+    const newFileName = `${editor}-${fileName}`;
 
     const sourceFile = Bun.file(file);
     const content = await sourceFile.text();
