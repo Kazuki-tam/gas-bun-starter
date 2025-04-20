@@ -6,8 +6,10 @@
   "license": "MIT",
   "scripts": {
     "clean": "rimraf dist",
+    "build": "bun run _tasks/build.ts",
     "postBuild": "bun run _tasks/build.ts",
     "copy": "bun run _tasks/copy.ts",
+    "deploy": "npm-run-all copy postBuild clasp:push",
     "release": "npm-run-all copy postBuild clasp:push",
     "clasp:push": "clasp push -f",
     "clasp:open": "clasp open",
