@@ -1,6 +1,6 @@
 {
   "name": "gas-bun-starter",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Starter kit to develop Google Apps Scrip with Bun.",
   "author": "Kazuki Yonemoto (https://dev.to/tim_yone)",
   "license": "MIT",

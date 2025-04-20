@@ -51,6 +51,8 @@ Open the App script from your spreadsheet and check out a script ID on the setti
 }
 ```
 
+Copy the example `.clasp.example.json` to `.clasp.json`.
+
 ```bash
 cp .clasp.example.json .clasp.json
 ```
@@ -75,6 +77,15 @@ Build your local project files and deploy them to the remote project.
 bun run deploy
 ```
 
+Copy and process LLM rules for supported AI tools:
+
+```shell
+bun run rules:cursor    # For Cursor
+bun run rules:windsurf  # For Windsurf
+bun run rules:copilot   # For Copilot
+bun run rules           # Run all above
+```
+
 Open the current directory's clasp project on script.google.com.
 
 ```shell
@@ -86,6 +97,22 @@ Format and lint your project files.
 ```shell
 bun run check
 ```
+
+## AI Rules (_llm-rules)
+
+The `_llm-rules` directory contains markdown files that define project rules and guidelines for AI coding assistants (LLMs). These rules help maintain code quality and consistency when using tools like Cursor, Windsurf, or Copilot.
+
+- `core-rule.md`: Core project rules
+- `gas-rule.md`: Rules specific to Google Apps Script and this starter
+
+### Rule Copying Script
+
+The `_tasks/copy-rules.ts` script copies and formats rules for different AI tools:
+- For **Cursor**: Copies rules to `.cursor/rules/` as `.mdc` files
+- For **Windsurf**: Merges rules into `.windsurfrules` in the project root
+- For **Copilot**: Merges rules into `.github/copilot-instructions.md`
+
+You can run these tasks via npm scripts (see next section).
 
 ## License
 MIT
