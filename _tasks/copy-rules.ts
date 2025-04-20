@@ -11,6 +11,8 @@ async function copyRules() {
     await processCursorRules();
   } else if (editor === "windsurf") {
     await processWindsurfRules();
+  } else if (editor === "copilot") {
+    await processCopilotRules();
   } else {
     console.error(`Unsupported editor: ${editor}`);
     process.exit(1);
@@ -86,6 +88,52 @@ async function processWindsurfRules() {
 
   // Create .windsurfrules file in project root
   const targetPath = ".windsurfrules";
+
+  await Bun.write(targetPath, mergedContent);
+  console.log(`Merged rule files and saved to ${targetPath}`);
+}
+
+async function processCopilotRules() {
+  // Get md files from _llm-rules directory
+  const ruleFiles = globSync("_llm-rules/*.md");
+  let coreRuleContent = "";
+  let otherRulesContent = "";
+
+  // Separate core-rule and other rules
+  for (const file of ruleFiles) {
+    const fileName = path.basename(file, ".md");
+    const sourceFile = Bun.file(file);
+    const content = await sourceFile.text();
+
+    // Remove frontmatter (part surrounded by ---)
+    const contentWithoutFrontmatter = removeFrontmatter(content);
+
+    // Skip if content is empty
+    if (!contentWithoutFrontmatter.trim()) {
+      console.log(`Skipping ${file} as it has no content besides frontmatter`);
+      continue;
+    }
+
+    if (fileName === "core-rule") {
+      coreRuleContent = contentWithoutFrontmatter;
+    } else {
+      // For other rule files, append content
+      otherRulesContent += `\n\n# ${fileName.toUpperCase()} Rules\n\n${contentWithoutFrontmatter}`;
+    }
+  }
+
+  // Place core-rule at the beginning, followed by other rules
+  const mergedContent = coreRuleContent + otherRulesContent;
+
+  // Create target directory if it doesn't exist
+  const targetDir = ".github";
+  if (!existsSync(targetDir)) {
+    await mkdir(targetDir, { recursive: true });
+    console.log(`Created directory ${targetDir}`);
+  }
+
+  // Create copilot-instructions.md file in .github directory
+  const targetPath = `${targetDir}/copilot-instructions.md`;
 
   await Bun.write(targetPath, mergedContent);
   console.log(`Merged rule files and saved to ${targetPath}`);

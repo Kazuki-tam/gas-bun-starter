@@ -86,6 +86,7 @@ Adhere to the following structure for consistency and maintainability:
   "rules": "npm-run-all rules:*",
   "rules:cursor": "bun run _tasks/copy-rules.ts cursor",
   "rules:windsurf": "bun run _tasks/copy-rules.ts windsurf",
+  "rules:copilot": "bun run _tasks/copy-rules.ts copilot",
   "deploy": "npm-run-all copy postBuild clasp:push",
   "release": "npm-run-all copy postBuild clasp:push",
   "clasp:push": "clasp push -f",
