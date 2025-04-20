@@ -6,13 +6,14 @@ gas-bun-starter is a starter kit that uses Bun for Google Apps Script.
 
 [![Release (latest by date)](https://img.shields.io/github/v/release/Kazuki-tam/gas-bun-starter)](https://github.com/Kazuki-tam/gas-bun-starter/releases/tag/v0.0.1)
 [![Issues](https://img.shields.io/github/issues/Kazuki-tam/gas-bun-starter)](https://github.com/Kazuki-tam/gas-bun-starter/issues)
-![Maintenance](https://img.shields.io/maintenance/yes/2024)
+![Maintenance](https://img.shields.io/maintenance/yes/2025)
 ![Release date](https://img.shields.io/github/release-date/Kazuki-tam/gas-bun-starter)
 
 ## Features
 - Just deploy this project code without development
 - Develop, test, and bundle TypeScript with Bun
 - Format and lint with Biome
+- Support Cursor, Windsurf, and Copilot
 
 ## Main dependencies
 
@@ -22,7 +23,7 @@ gas-bun-starter is a starter kit that uses Bun for Google Apps Script.
 
 ## Prerequisites
 
-- [Bun](https://bun.sh/)
+Bun is required to run this project. You can install it from [Bun's official website](https://bun.sh/docs/installation).
 
 ## How to use
 
@@ -35,7 +36,7 @@ bun install
 ### Login google account
 
 ```shell
-bun clasp:login
+bun run clasp:login
 ```
 
 ### Connect to your existing project
@@ -50,10 +51,14 @@ Open the App script from your spreadsheet and check out a script ID on the setti
 }
 ```
 
+```bash
+cp .clasp.example.json .clasp.json
+```
+
 Deploy your code to the existing project.
 
 ```shell
-bun release
+bun run deploy
 ```
 
 ## Available Commands
@@ -61,25 +66,25 @@ bun release
 Build your project.
 
 ```shell
-bun postBuild
+bun run build
 ```
 
 Build your local project files and deploy them to the remote project.
 
 ```shell
-bun release
+bun run deploy
 ```
 
 Open the current directory's clasp project on script.google.com.
 
 ```shell
-bun clasp:open
+bun run clasp:open
 ```
 
 Format and lint your project files.
 
 ```shell
-bun check
+bun run check
 ```
 
 ## License
