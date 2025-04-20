@@ -176,3 +176,8 @@ dist
 
 # Clasp
 .clasp.json
+
+# LLM rules
+.windsurfrules
+.github/copilot-instructions.md
+.cursor/rules/*
