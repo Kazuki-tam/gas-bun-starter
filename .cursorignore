@@ -1,0 +1,9 @@
+# local env files
+.env
+.env*.local
+
+# Clasp
+.clasp.json
+
+# Node modules
+node_modules
