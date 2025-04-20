@@ -6,6 +6,44 @@ import { globSync } from "glob";
 // Get editor from command line arguments
 const editor = process.argv[2] || "cursor"; // Default is cursor
 
+// Function to remove frontmatter (part surrounded by ---)
+function removeFrontmatter(content: string): string {
+  // Remove frontmatter if it exists
+  if (content.startsWith("---")) {
+    const secondDashIndex = content.indexOf("---", 3);
+    if (secondDashIndex !== -1) {
+      return content.substring(secondDashIndex + 3).trim();
+    }
+  }
+  return content;
+}
+
+// New function to read and process rules
+async function readAndProcessRules(): Promise<{ coreRuleContent: string; otherRulesContent: string }> {
+  const ruleFiles = globSync("_llm-rules/*.md");
+  let coreRuleContent = "";
+  let otherRulesContent = "";
+
+  for (const file of ruleFiles) {
+    const fileName = path.basename(file, ".md");
+    const sourceFile = Bun.file(file);
+    const content = await sourceFile.text();
+    const contentWithoutFrontmatter = removeFrontmatter(content);
+
+    if (!contentWithoutFrontmatter.trim()) {
+      console.log(`Skipping ${file} as it has no content besides frontmatter`);
+      continue;
+    }
+
+    if (fileName === "core-rule") {
+      coreRuleContent = contentWithoutFrontmatter;
+    } else {
+      otherRulesContent += `\n\n# ${fileName.toUpperCase()} Rules\n\n${contentWithoutFrontmatter}`;
+    }
+  }
+  return { coreRuleContent, otherRulesContent };
+}
+
 async function copyRules() {
   if (editor === "cursor") {
     await processCursorRules();
@@ -55,38 +93,8 @@ async function processCursorRules() {
 }
 
 async function processWindsurfRules() {
-  // Get md files from _llm-rules directory
-  const ruleFiles = globSync("_llm-rules/*.md");
-  let coreRuleContent = "";
-  let otherRulesContent = "";
-
-  // Separate core-rule and other rules
-  for (const file of ruleFiles) {
-    const fileName = path.basename(file, ".md");
-    const sourceFile = Bun.file(file);
-    const content = await sourceFile.text();
-
-    // Remove frontmatter (part surrounded by ---)
-    const contentWithoutFrontmatter = removeFrontmatter(content);
-
-    // Skip if content is empty
-    if (!contentWithoutFrontmatter.trim()) {
-      console.log(`Skipping ${file} as it has no content besides frontmatter`);
-      continue;
-    }
-
-    if (fileName === "core-rule") {
-      coreRuleContent = contentWithoutFrontmatter;
-    } else {
-      // For other rule files, append content
-      otherRulesContent += `\n\n# ${fileName.toUpperCase()} Rules\n\n${contentWithoutFrontmatter}`;
-    }
-  }
-
-  // Place core-rule at the beginning, followed by other rules
+  const { coreRuleContent, otherRulesContent } = await readAndProcessRules();
   const mergedContent = coreRuleContent + otherRulesContent;
-
-  // Create .windsurfrules file in project root
   const targetPath = ".windsurfrules";
 
   await Bun.write(targetPath, mergedContent);
@@ -94,35 +102,7 @@ async function processWindsurfRules() {
 }
 
 async function processCopilotRules() {
-  // Get md files from _llm-rules directory
-  const ruleFiles = globSync("_llm-rules/*.md");
-  let coreRuleContent = "";
-  let otherRulesContent = "";
-
-  // Separate core-rule and other rules
-  for (const file of ruleFiles) {
-    const fileName = path.basename(file, ".md");
-    const sourceFile = Bun.file(file);
-    const content = await sourceFile.text();
-
-    // Remove frontmatter (part surrounded by ---)
-    const contentWithoutFrontmatter = removeFrontmatter(content);
-
-    // Skip if content is empty
-    if (!contentWithoutFrontmatter.trim()) {
-      console.log(`Skipping ${file} as it has no content besides frontmatter`);
-      continue;
-    }
-
-    if (fileName === "core-rule") {
-      coreRuleContent = contentWithoutFrontmatter;
-    } else {
-      // For other rule files, append content
-      otherRulesContent += `\n\n# ${fileName.toUpperCase()} Rules\n\n${contentWithoutFrontmatter}`;
-    }
-  }
-
-  // Place core-rule at the beginning, followed by other rules
+  const { coreRuleContent, otherRulesContent } = await readAndProcessRules();
   const mergedContent = coreRuleContent + otherRulesContent;
 
   // Create target directory if it doesn't exist
@@ -137,18 +117,6 @@ async function processCopilotRules() {
 
   await Bun.write(targetPath, mergedContent);
   console.log(`Merged rule files and saved to ${targetPath}`);
-}
-
-// Function to remove frontmatter (part surrounded by ---)
-function removeFrontmatter(content: string): string {
-  // Remove frontmatter if it exists
-  if (content.startsWith("---")) {
-    const secondDashIndex = content.indexOf("---", 3);
-    if (secondDashIndex !== -1) {
-      return content.substring(secondDashIndex + 3).trim();
-    }
-  }
-  return content;
 }
 
 copyRules();
