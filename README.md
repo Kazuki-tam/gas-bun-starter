@@ -112,7 +112,11 @@ The `_tasks/copy-rules.ts` script copies and formats rules for different AI tool
 - For **Windsurf**: Merges rules into `.windsurfrules` in the project root
 - For **Copilot**: Merges rules into `.github/copilot-instructions.md`
 
-You can run these tasks via npm scripts (see next section).
+## References
+- [Cursor Rules](https://docs.cursor.com/context/rules)
+- [Windsurf Rules](https://docs.windsurf.com/windsurf/memories#memories-and-rules)
+- [GitHub Copilot Rules](https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot#repository-custom-instructions-in-use)
+- [kinopeee/cursorrules](https://github.com/kinopeee/cursorrules)
 
 ## License
 MIT
