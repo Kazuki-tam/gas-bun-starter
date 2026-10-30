@@ -1,12 +1,34 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.8.2/schema.json",
-	"organizeImports": {
-		"enabled": true
+	"$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"includes": [
+			"src/**",
+			"_tasks/**",
+			"biome.json",
+			"package.json",
+			"tsconfig.json"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab"
 	},
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"preset": "recommended"
+		}
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
 		}
 	}
 }

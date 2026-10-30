@@ -6,7 +6,7 @@ gas-bun-starter is a starter kit that uses Bun for Google Apps Script.
 
 [![Release (latest by date)](https://img.shields.io/github/v/release/Kazuki-tam/gas-bun-starter)](https://github.com/Kazuki-tam/gas-bun-starter/releases/tag/v0.0.1)
 [![Issues](https://img.shields.io/github/issues/Kazuki-tam/gas-bun-starter)](https://github.com/Kazuki-tam/gas-bun-starter/issues)
-![Maintenance](https://img.shields.io/maintenance/yes/2025)
+![Maintenance](https://img.shields.io/maintenance/yes/2026)
 ![Release date](https://img.shields.io/github/release-date/Kazuki-tam/gas-bun-starter)
 
 ## Features
@@ -23,7 +23,7 @@ gas-bun-starter is a starter kit that uses Bun for Google Apps Script.
 
 ## Prerequisites
 
-Bun is required to run this project. You can install it from [Bun's official website](https://bun.sh/docs/installation).
+Bun 1.3 or newer is required. You can install it from [Bun's official website](https://bun.sh/docs/installation).
 
 ## How to use
 
@@ -33,7 +33,7 @@ Clone this repository and install dependencies.
 bun install
 ```
 
-### Login google account
+### Log in with a Google account
 
 ```shell
 bun run clasp:login
@@ -41,7 +41,7 @@ bun run clasp:login
 
 ### Connect to your existing project
 
-Create a `.clasp.json` at the root, and then Add these settings.
+Create a `.clasp.json` at the root, and add these settings.
 Open the App script from your spreadsheet and check out a script ID on the settings page.
 
 ```json
@@ -57,7 +57,7 @@ Copy the example `.clasp.example.json` to `.clasp.json`.
 cp .clasp.example.json .clasp.json
 ```
 
-Deploy your code to the existing project.
+Deploy your code to the existing project. The build bundles TypeScript into `dist` and copies the manifest there. Clasp 3 uploads that directory and does not transpile TypeScript.
 
 ```shell
 bun run deploy
@@ -96,6 +96,12 @@ Format and lint your project files.
 
 ```shell
 bun run check
+```
+
+Run the unit tests.
+
+```shell
+bun test
 ```
 
 ## AI Rules (_llm-rules)
