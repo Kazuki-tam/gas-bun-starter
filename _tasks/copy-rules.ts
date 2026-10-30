@@ -1,116 +1,161 @@
 import { mkdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
 import path from "node:path";
-import { globSync } from "glob";
 
-// Get editor from command line arguments
-const editor = process.argv[2] || "cursor"; // Default is cursor
+const editors = ["cursor", "windsurf", "copilot"] as const;
 
-// Function to remove frontmatter (part surrounded by ---)
-function removeFrontmatter(content: string): string {
-  // Remove frontmatter if it exists
-  if (content.startsWith("---")) {
-    const secondDashIndex = content.indexOf("---", 3);
-    if (secondDashIndex !== -1) {
-      return content.substring(secondDashIndex + 3).trim();
-    }
-  }
-  return content;
+export type EditorTarget = (typeof editors)[number];
+
+export type CopyRulesOptions = {
+	rulesDir?: string;
+	cursorDir?: string;
+	windsurfPath?: string;
+	copilotPath?: string;
+};
+
+const defaultOptions: Required<CopyRulesOptions> = {
+	rulesDir: "_llm-rules",
+	cursorDir: ".cursor/rules",
+	windsurfPath: ".windsurfrules",
+	copilotPath: ".github/copilot-instructions.md",
+};
+
+export function isEditorTarget(value: string): value is EditorTarget {
+	return editors.includes(value as EditorTarget);
 }
 
-// New function to read and process rules
-async function readAndProcessRules(): Promise<{ coreRuleContent: string; otherRulesContent: string }> {
-  const ruleFiles = globSync("_llm-rules/*.md");
-  let coreRuleContent = "";
-  let otherRulesContent = "";
+/**
+ * Removes a leading YAML frontmatter block delimited by `---`.
+ */
+export function removeFrontmatter(content: string): string {
+	if (!content.startsWith("---")) {
+		return content;
+	}
 
-  for (const file of ruleFiles) {
-    const fileName = path.basename(file, ".md");
-    const sourceFile = Bun.file(file);
-    const content = await sourceFile.text();
-    const contentWithoutFrontmatter = removeFrontmatter(content);
+	const secondDashIndex = content.indexOf("---", 3);
+	if (secondDashIndex === -1) {
+		return content;
+	}
 
-    if (!contentWithoutFrontmatter.trim()) {
-      console.log(`Skipping ${file} as it has no content besides frontmatter`);
-      continue;
-    }
-
-    if (fileName === "core-rule") {
-      coreRuleContent = contentWithoutFrontmatter;
-    } else {
-      otherRulesContent += `\n\n# ${fileName.toUpperCase()} Rules\n\n${contentWithoutFrontmatter}`;
-    }
-  }
-  return { coreRuleContent, otherRulesContent };
+	return content.slice(secondDashIndex + 3).trim();
 }
 
-async function copyRules() {
-  if (editor === "cursor") {
-    await processCursorRules();
-  } else if (editor === "windsurf") {
-    await processWindsurfRules();
-  } else if (editor === "copilot") {
-    await processCopilotRules();
-  } else {
-    console.error(`Unsupported editor: ${editor}`);
-    process.exit(1);
-  }
+function listRuleFiles(rulesDir: string): string[] {
+	const glob = new Bun.Glob("*.md");
+	return [...glob.scanSync({ cwd: rulesDir })]
+		.map((file) => path.join(rulesDir, file))
+		.sort();
 }
 
-async function processCursorRules() {
-  const targetDir = ".cursor/rules";
-  const fileExtension = ".mdc";
+export async function readAndProcessRules(rulesDir: string): Promise<{
+	coreRuleContent: string;
+	otherRulesContent: string;
+}> {
+	let coreRuleContent = "";
+	let otherRulesContent = "";
 
-  // Create target directory if it doesn't exist
-  if (!existsSync(targetDir)) {
-    await mkdir(targetDir, { recursive: true });
-    console.log(`Created directory ${targetDir}`);
-  }
+	for (const file of listRuleFiles(rulesDir)) {
+		const fileName = path.basename(file, ".md");
+		const contentWithoutFrontmatter = removeFrontmatter(
+			await Bun.file(file).text(),
+		);
 
-  // Get md files from _llm-rules directory
-  const ruleFiles = globSync("_llm-rules/*.md");
+		if (!contentWithoutFrontmatter.trim()) {
+			console.log(`Skipping ${file} as it has no content besides frontmatter`);
+			continue;
+		}
 
-  // Copy each file to target directory and change extension
-  for (const file of ruleFiles) {
-    const fileName = path.basename(file, ".md");
+		if (fileName === "core-rule") {
+			coreRuleContent = contentWithoutFrontmatter;
+			continue;
+		}
 
-    // Rename all rules to have editor prefix (e.g., cursor-rule-name)
-    const newFileName = `${editor}-${fileName}`;
+		otherRulesContent += `\n\n# ${fileName.toUpperCase()} Rules\n\n${contentWithoutFrontmatter}`;
+	}
 
-    const sourceFile = Bun.file(file);
-    const content = await sourceFile.text();
-
-    const targetPath = `${targetDir}/${newFileName}${fileExtension}`;
-    await Bun.write(targetPath, content);
-    console.log(`Copied ${file} to ${targetPath}`);
-  }
+	return { coreRuleContent, otherRulesContent };
 }
 
-async function processWindsurfRules() {
-  const { coreRuleContent, otherRulesContent } = await readAndProcessRules();
-  const mergedContent = coreRuleContent + otherRulesContent;
-  const targetPath = ".windsurfrules";
+async function mergedRuleContent(rulesDir: string): Promise<string> {
+	const { coreRuleContent, otherRulesContent } =
+		await readAndProcessRules(rulesDir);
+	const mergedContent = `${coreRuleContent}${otherRulesContent}`.trim();
 
-  await Bun.write(targetPath, mergedContent);
-  console.log(`Merged rule files and saved to ${targetPath}`);
+	if (!mergedContent) {
+		throw new Error(`No rule content found in ${rulesDir}`);
+	}
+
+	return `${mergedContent}\n`;
 }
 
-async function processCopilotRules() {
-  const { coreRuleContent, otherRulesContent } = await readAndProcessRules();
-  const mergedContent = coreRuleContent + otherRulesContent;
+async function processCursorRules(
+	editor: EditorTarget,
+	options: Required<CopyRulesOptions>,
+): Promise<void> {
+	await mkdir(options.cursorDir, { recursive: true });
 
-  // Create target directory if it doesn't exist
-  const targetDir = ".github";
-  if (!existsSync(targetDir)) {
-    await mkdir(targetDir, { recursive: true });
-    console.log(`Created directory ${targetDir}`);
-  }
-
-  // Create copilot-instructions.md file in .github directory
-  const targetPath = `${targetDir}/copilot-instructions.md`;
-
-  await Bun.write(targetPath, mergedContent);
-  console.log(`Merged rule files and saved to ${targetPath}`);
+	for (const file of listRuleFiles(options.rulesDir)) {
+		const fileName = path.basename(file, ".md");
+		const targetPath = path.join(
+			options.cursorDir,
+			`${editor}-${fileName}.mdc`,
+		);
+		await Bun.write(targetPath, await Bun.file(file).text());
+		console.log(`Copied ${file} to ${targetPath}`);
+	}
 }
 
-copyRules();
+async function processWindsurfRules(
+	options: Required<CopyRulesOptions>,
+): Promise<void> {
+	await Bun.write(
+		options.windsurfPath,
+		await mergedRuleContent(options.rulesDir),
+	);
+	console.log(`Merged rule files and saved to ${options.windsurfPath}`);
+}
+
+async function processCopilotRules(
+	options: Required<CopyRulesOptions>,
+): Promise<void> {
+	await mkdir(path.dirname(options.copilotPath), { recursive: true });
+	await Bun.write(
+		options.copilotPath,
+		await mergedRuleContent(options.rulesDir),
+	);
+	console.log(`Merged rule files and saved to ${options.copilotPath}`);
+}
+
+export async function copyRules(
+	editor: EditorTarget,
+	options: CopyRulesOptions = {},
+): Promise<void> {
+	const resolvedOptions = { ...defaultOptions, ...options };
+
+	if (editor === "cursor") {
+		await processCursorRules(editor, resolvedOptions);
+		return;
+	}
+
+	if (editor === "windsurf") {
+		await processWindsurfRules(resolvedOptions);
+		return;
+	}
+
+	await processCopilotRules(resolvedOptions);
+}
+
+if (import.meta.main) {
+	const editorArg = process.argv[2] ?? "cursor";
+
+	if (!isEditorTarget(editorArg)) {
+		console.error(`Unsupported editor: ${editorArg}`);
+		process.exit(1);
+	}
+
+	try {
+		await copyRules(editorArg);
+	} catch (error) {
+		console.error(error instanceof Error ? error.message : error);
+		process.exit(1);
+	}
+}

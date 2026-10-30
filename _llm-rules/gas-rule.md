@@ -24,12 +24,12 @@ Adhere to the following structure for consistency and maintainability:
 ```
 .
 ├── .clasp.json         # Clasp project configuration
-├── appsscript.json     # GAS manifest file (permissions, etc.)
-├── bun.lockb           # Bun lockfile
+├── bun.lock            # Bun lockfile
 ├── package.json        # Project dependencies and scripts
 ├── tsconfig.json       # TypeScript configuration
 ├── README.md           # Project documentation
 ├── src/                  # Main source code (TypeScript)
+│   ├── appsscript.json   # GAS manifest, copied to dist by the build
 │   ├── index.ts          # Main entry point for globally exposed GAS functions
 │   ├── api/              # Handlers for web apps (doGet, doPost) or APIs
 │   │   └── *.ts
@@ -45,7 +45,7 @@ Adhere to the following structure for consistency and maintainability:
 └── _llm-rules/           # Rules for AI interaction
 ```
 
-*   Place the `appsscript.json` file in the root directory. Clasp will copy it to `dist` during push.
+*   Keep `appsscript.json` in `src/`. The build copies it to `dist/` before `clasp push`. Clasp 3 does not transpile TypeScript, so push the bundled `dist` output.
 *   Keep all TypeScript source code within the `src` directory.
 *   Organize code logically within `api`, `services`, `utils`, and `types`.
 
@@ -87,10 +87,10 @@ Adhere to the following structure for consistency and maintainability:
   "rules:cursor": "bun run _tasks/copy-rules.ts cursor",
   "rules:windsurf": "bun run _tasks/copy-rules.ts windsurf",
   "rules:copilot": "bun run _tasks/copy-rules.ts copilot",
-  "deploy": "npm-run-all copy postBuild clasp:push",
-  "release": "npm-run-all copy postBuild clasp:push",
+  "deploy": "npm-run-all build clasp:push",
+  "release": "npm-run-all build clasp:push",
   "clasp:push": "clasp push -f",
-  "clasp:open": "clasp open",
+  "clasp:open": "clasp open-script",
   "clasp:login": "clasp login",
   "clasp:clone": "clasp clone",
   "format": "npm-run-all format:*",
@@ -99,7 +99,10 @@ Adhere to the following structure for consistency and maintainability:
   "lint": "npm-run-all lint:*",
   "lint:src": "bunx @biomejs/biome lint --write src",
   "lint:task": "bunx @biomejs/biome lint --write _tasks",
-  "check": "bunx tsc --noEmit && npm-run-all lint:*",
+  "typecheck": "tsc --noEmit",
+  "test": "bun test",
+  "check": "bun run typecheck && npm-run-all lint:*",
+  "ci": "bun run check && bun test && bun run build",
   "check:src": "bunx @biomejs/biome check --write src",
   "check:task": "bunx @biomejs/biome check --write _tasks"
 }
@@ -109,7 +112,7 @@ Adhere to the following structure for consistency and maintainability:
 
 *   **Bun Test:** Use `bun test` for running unit tests.
 *   **Location:** Place test files alongside the code they test or within the `src/tests` directory, using the `.test.ts` extension.
-*   **Mocking:** Mock GAS global objects and services for isolated unit testing. Libraries like `jest-mock` (compatible with Bun test) can be helpful.
+*   **Mocking:** Mock GAS global objects and services for isolated unit testing with `bun:test`.
 *   **Focus:** Prioritize testing business logic in `services` and complex logic in `utils`.
 
 ## 6. Deployment
