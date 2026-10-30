@@ -4,7 +4,7 @@ gas-bun-starter is a starter kit that uses Bun for Google Apps Script.
 
 ## Status
 
-[![Release (latest by date)](https://img.shields.io/github/v/release/Kazuki-tam/gas-bun-starter)](https://github.com/Kazuki-tam/gas-bun-starter/releases/tag/v0.0.1)
+[![Release (latest by date)](https://img.shields.io/github/v/release/Kazuki-tam/gas-bun-starter)](https://github.com/Kazuki-tam/gas-bun-starter/releases/latest)
 [![Issues](https://img.shields.io/github/issues/Kazuki-tam/gas-bun-starter)](https://github.com/Kazuki-tam/gas-bun-starter/issues)
 ![Maintenance](https://img.shields.io/maintenance/yes/2026)
 ![Release date](https://img.shields.io/github/release-date/Kazuki-tam/gas-bun-starter)
